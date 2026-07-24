@@ -7,7 +7,7 @@ import { CalendarDays, ArrowRight } from "lucide-react";
 export default function BlogCard({ blog }) {
   return (
     <article className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-[#F2E8D8]">
-      <Link href={`/blog/${blog.slug}`} className="block overflow-hidden">
+      <Link href={`/${blog.slug}`} className="block overflow-hidden">
         <Image
           src={blog.image}
           alt={blog.title}
