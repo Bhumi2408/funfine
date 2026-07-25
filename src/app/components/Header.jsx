@@ -14,6 +14,10 @@ const navItems = [
   { name: "CONTACT US", href: "/contact-us" },
 ];
 
+// Place your catalogue PDF at: public/catalogue.pdf
+// (so it's reachable at the URL "/catalogue.pdf")
+const CATALOGUE_PATH = "/brochure.pdf";
+
 export default function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -71,10 +75,12 @@ export default function Header() {
         {/* Desktop Button */}
         <div className="hidden lg:block">
           <a
-            href="tel:+918130878411"
+            href={CATALOGUE_PATH}
+            target="_blank"
+            rel="noopener noreferrer"
             className="bg-[#F47A00] hover:bg-[#ea7200] text-white px-7 h-[46px] rounded-full flex items-center justify-center text-sm font-semibold transition-all"
           >
-            Call us: +91 81308 78411
+            Download Catalogue
           </a>
         </div>
 
@@ -110,10 +116,12 @@ export default function Header() {
             })}
           </ul>
           <a
-            href="tel:+918130878411"
+            href={CATALOGUE_PATH}
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-5 bg-[#F47A00] hover:bg-[#ea7200] text-white px-7 h-[46px] rounded-full flex items-center justify-center text-sm font-semibold w-full"
           >
-            Call us: +91 81308 78411
+            Download Catalogue
           </a>
         </div>
       )}
