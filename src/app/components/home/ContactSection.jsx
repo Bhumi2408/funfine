@@ -1,74 +1,141 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Phone, Mail, MapPin } from "lucide-react";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^\d{10}$/;
+
+const submitToWeb3Forms = async (payload, accessKey) => {
+  const response = await fetch("https://api.web3forms.com/submit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ ...payload, access_key: accessKey }),
+  });
+  const result = await response.json();
+  if (!result.success) {
+    throw new Error(result.message || "Submission failed");
+  }
+  return result;
+};
+
 export default function ContactSection() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     mobile: "",
     message: "",
+    botcheck: false,
   });
 
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    // Phone field: strip anything that isn't a digit, cap at 10 chars
+    const nextValue =
+      name === "mobile" ? value.replace(/\D/g, "").slice(0, 10) : value;
+
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: type === "checkbox" ? checked : nextValue,
     }));
+  };
+
+  const validate = () => {
+    const errors = {};
+
+    if (!formData.firstName.trim()) errors.firstName = "Please enter your first name.";
+    if (!formData.lastName.trim()) errors.lastName = "Please enter your last name.";
+
+    if (!formData.email.trim()) {
+      errors.email = "Please enter your email.";
+    } else if (!EMAIL_REGEX.test(formData.email.trim())) {
+      errors.email = "Please enter a valid email address.";
+    }
+
+    if (!formData.mobile.trim()) {
+      errors.mobile = "Please enter your mobile number.";
+    } else if (!PHONE_REGEX.test(formData.mobile.trim())) {
+      errors.mobile = "Mobile number must be exactly 10 digits.";
+    }
+
+    if (!formData.message.trim()) errors.message = "Please enter a message.";
+
+    return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Honeypot: real users never check/fill this hidden field. If it's
+    // set, silently drop the submission instead of sending it anywhere.
+    if (formData.botcheck) {
+      return;
+    }
+
+    const errors = validate();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
     setLoading(true);
     setStatus("");
 
+    const payload = {
+      subject: "Fun Fine New Lead",
+      from_name: `${formData.firstName} ${formData.lastName}`,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      email: formData.email,
+      mobile: formData.mobile,
+      message: formData.message,
+    };
+
     try {
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          access_key:
-            process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY ||
-            "YOUR_ACCESS_KEY",
+      // Fire both submissions in parallel. We redirect if AT LEAST ONE
+      // succeeds, so a hiccup on one inbox doesn't block the user.
+      const results = await Promise.allSettled([
+        submitToWeb3Forms(
+          payload,
+          process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || "33a2033f-0e90-449e-b7fb-55c1c9@af6d4"
+        ),
+        submitToWeb3Forms(
+          payload,
+          process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY_2 || "30f8c7f4-4835-432e-8020-b9ca08bf5e26"
+        ),
+      ]);
 
-          subject: "New Contact Form Submission",
+      const atLeastOneSucceeded = results.some(
+        (r) => r.status === "fulfilled"
+      );
 
-          from_name: `${formData.firstName} ${formData.lastName}`,
-
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          email: formData.email,
-          mobile: formData.mobile,
-          message: formData.message,
-
-          botcheck: false,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setStatus("success");
-
+      if (atLeastOneSucceeded) {
         setFormData({
           firstName: "",
           lastName: "",
           email: "",
           mobile: "",
           message: "",
+          botcheck: false,
         });
-      } else {
-        setStatus("error");
+        setFieldErrors({});
+        router.push("/thank-you");
+        return;
       }
+
+      setStatus("error");
     } catch (err) {
       console.log(err);
       setStatus("error");
@@ -135,72 +202,92 @@ export default function ContactSection() {
           </div>
 
           {/* Right Side */}
-          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5 sm:space-y-6">
             <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
-              <input
-                type="text"
-                name="firstName"
-                placeholder="First Name"
-                required
-                value={formData.firstName}
-                onChange={handleChange}
-                className="w-full h-12 sm:h-14 border border-gray-400 rounded px-5 bg-[#FFF1DE] outline-none focus:border-[#FF6A54]"
-              />
+              <div>
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full h-12 sm:h-14 border border-gray-400 rounded px-5 bg-[#FFF1DE] outline-none focus:border-[#FF6A54]"
+                />
+                {fieldErrors.firstName && (
+                  <p className="mt-1.5 text-sm text-red-600">{fieldErrors.firstName}</p>
+                )}
+              </div>
 
+              <div>
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full h-12 sm:h-14 border border-gray-400 bg-[#FFF1DE] rounded px-5 outline-none focus:border-[#FF6A54]"
+                />
+                {fieldErrors.lastName && (
+                  <p className="mt-1.5 text-sm text-red-600">{fieldErrors.lastName}</p>
+                )}
+              </div>
+            </div>
+
+            <div>
               <input
-                type="text"
-                name="lastName"
-                placeholder="Last Name"
-                required
-                value={formData.lastName}
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
                 onChange={handleChange}
                 className="w-full h-12 sm:h-14 border border-gray-400 bg-[#FFF1DE] rounded px-5 outline-none focus:border-[#FF6A54]"
               />
+              {fieldErrors.email && (
+                <p className="mt-1.5 text-sm text-red-600">{fieldErrors.email}</p>
+              )}
             </div>
 
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full h-12 sm:h-14 border border-gray-400 bg-[#FFF1DE] rounded px-5 outline-none focus:border-[#FF6A54]"
-            />
+            <div>
+              <input
+                type="tel"
+                name="mobile"
+                placeholder="Mobile"
+                inputMode="numeric"
+                maxLength={10}
+                value={formData.mobile}
+                onChange={handleChange}
+                className="w-full h-12 sm:h-14 border border-gray-400 bg-[#FFF1DE] rounded px-5 outline-none focus:border-[#FF6A54]"
+              />
+              {fieldErrors.mobile && (
+                <p className="mt-1.5 text-sm text-red-600">{fieldErrors.mobile}</p>
+              )}
+            </div>
 
-            <input
-              type="tel"
-              name="mobile"
-              placeholder="Mobile"
-              required
-              value={formData.mobile}
-              onChange={handleChange}
-              className="w-full h-12 sm:h-14 border border-gray-400 bg-[#FFF1DE] rounded px-5 outline-none focus:border-[#FF6A54]"
-            />
+            <div>
+              <textarea
+                rows={5}
+                name="message"
+                placeholder="Message"
+                value={formData.message}
+                onChange={handleChange}
+                className="w-full border border-gray-400 rounded p-4 sm:p-5 bg-[#FFF1DE] outline-none resize-none focus:border-[#FF6A54]"
+              />
+              {fieldErrors.message && (
+                <p className="mt-1.5 text-sm text-red-600">{fieldErrors.message}</p>
+              )}
+            </div>
 
-            <textarea
-              rows={5}
-              name="message"
-              placeholder="Message"
-              required
-              value={formData.message}
-              onChange={handleChange}
-              className="w-full border border-gray-400 rounded p-4 sm:p-5 bg-[#FFF1DE] outline-none resize-none focus:border-[#FF6A54]"
-            />
-
-            {/* Honeypot */}
+            {/* Honeypot - visually hidden, wired to state so it actually works */}
             <input
               type="checkbox"
               name="botcheck"
+              checked={formData.botcheck}
+              onChange={handleChange}
               className="hidden"
               style={{ display: "none" }}
+              tabIndex={-1}
+              autoComplete="off"
             />
-
-            {status === "success" && (
-              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-sm sm:text-base">
-                Message sent successfully.
-              </div>
-            )}
 
             {status === "error" && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm sm:text-base">
