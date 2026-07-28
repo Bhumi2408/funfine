@@ -8,6 +8,7 @@ import BlogContent from "@/app/components/Blog/BlogContent";
 import BlogDetailsHero from "@/app/components/Blog/BlogDetailsHero";
 import { getSortedBlogs } from "../blog/utils";
 import FaqSchema from "@/app/components/FaqSchema";
+import ArticleSchema from "../components/ArticleSchema";
 
 export async function generateMetadata({ params }) {
     const { slug } = await params;
@@ -66,6 +67,7 @@ export default async function BlogDetails({ params }) {
     return (
         <>
             <FaqSchema faqs={blog.faqSchema} />
+            <ArticleSchema article={blog.articleSchema} />
             <BlogDetailsHero blog={blog} />
 
             <section className="py-8">
