@@ -1,4 +1,5 @@
 import "./globals.css";
+import Script from "next/script";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
@@ -45,9 +46,9 @@ export const metadata = {
   icons: {
     icon: "/logo.png",
   },
-  verification:{
-    google:"TllSR9P_0f-i87fQDbpSqDuxRhdmFSKjdh95huW3_gg"
-  }
+  verification: {
+    google: "TllSR9P_0f-i87fQDbpSqDuxRhdmFSKjdh95huW3_gg",
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -57,11 +58,25 @@ export default function RootLayout({ children }) {
       className={`${lato.variable} ${robotoSlab.variable} ${amaranth.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Google tag (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-SG75PLRTF1"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-SG75PLRTF1');
+          `}
+        </Script>
+
         <Header />
         <main id="main" className="flex-1">
           {children}
         </main>
-        <WhatsAppButton/>
+        <WhatsAppButton />
         <Footer />
       </body>
     </html>
