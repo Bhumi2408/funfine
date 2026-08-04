@@ -1,6 +1,7 @@
 import { productCategories } from "../products-data";
 import StaticPageHero from "@/app/components/StaticPageHero";
 import ProductCategorySection from "@/app/components/Products/ProductCategorySection";
+import ProductsSection from "../components/home/ProductsSection";
 
 export const metadata = {
   title: "Products | Fun Fine",
@@ -20,7 +21,7 @@ export default function ProductsPage() {
         image="/namkeen.jpg"
       />
 
-      <section className="py-16 lg:py-24">
+      {/* <section className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-5">
           {productCategories.map((cat) => (
             <ProductCategorySection
@@ -30,7 +31,8 @@ export default function ProductsPage() {
             />
           ))}
         </div>
-      </section>
+      </section> */}
+      <ProductsSection/>
     </>
   );
 }

@@ -16,7 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 const usefulLinks = [
   { name: "HOME", href: "/" },
   { name: "ABOUT", href: "/about" },
-  { name: "PRODUCTS", href: "/#products" },
+  { name: "PRODUCTS", href: "/products" },
   { name: "CONTACT US", href: "/contact-us" },
 ];
 

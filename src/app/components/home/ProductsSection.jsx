@@ -163,7 +163,7 @@ export default function ProductsSection() {
         </div>
 
         <div className="mt-14 flex items-center justify-center">
-          <Link href="/#products" className="border-[3px] text-[17px] font-semibold uppercase px-5 py-3 text-[#F74D67] border-[#F74D67]">50+ Products</Link>
+          <Link href="/products" className="border-[3px] text-[17px] font-semibold uppercase px-5 py-3 text-[#F74D67] border-[#F74D67]">50+ Products</Link>
         </div>
       </div>
     </section>
