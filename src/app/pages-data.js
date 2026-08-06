@@ -216,4 +216,19 @@ Fun Fine chips are popular because of their great taste, quality ingredients, ex
             "Fun Fine Namkeen",
         ],
     },
+    {
+    slug: "best-puff-manufacturer",
+    title: "Best Puff Manufacturer",
+    breadcrumbLabel: "Fun Fine Puffs",
+    image: "/namkeen.jpg",
+    seoTitle: "Best Puff Manufacturer in India | Fun Fine Snacks",
+    seoDescription:
+      "Fun Fine is the Best Puff Manufacturer in India offering premium-quality puff snacks in multiple flavours with bulk supply across Delhi NCR, Sonipat, and India.",
+    keywords: [
+      "Best Puff Manufacturer",
+      "Best Puff Manufacturer in India",
+      "Best Puff Manufacturer in Delhi NCR",
+      "Best Puff Manufacturer in Sonipat",
+    ],
+},
 ];
